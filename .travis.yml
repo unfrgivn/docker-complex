@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t unfrigvn/react-client -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run unfrigvn/react-client npm run test -- --coverage
+
+after_success:
+  - docker build -t unfrgivn/multi-client ./client
+  - docker build -t unfrgivn/multi-nginx ./nginx
+  - docker build -t unfrgivn/multi-server ./server
+  - docker build -t unfrgivn/multi-worker ./worker
+  #Log in to the Docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  #Push images to Docker Hub
+  - docker push unfrgivn/multi-client
+  - docker push unfrgivn/multi-nginx
+  - docker push unfrgivn/multi-server
+  - docker push unfrgivn/multi-worker
